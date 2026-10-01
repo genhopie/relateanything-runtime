@@ -13,4 +13,11 @@ GitHub Actions workflow `container-build` on `main` prints the digest in the job
 
 ## Recorded production digest
 
-_Not set in this repository commit — populate only after a verified image build (no placeholder digests)._
+| Field | Value |
+| --- | --- |
+| Runtime git revision | `2e42d7d846542c0807577b93dc56d1add451acff` |
+| Image reference (local build tag) | `ghcr.io/genhopie/relateanything-runtime:2e42d7d846542c0807577b93dc56d1add451acff` |
+| Immutable digest (`docker image inspect --format='{{.Id}}'`) | `sha256:e3681a25fa60a93a2a8ac5ba4afdf402f19a7e05e5c06fb8796eda7a0228b554` |
+| Verified build | GitHub Actions `container-build` run [36832818024](https://github.com/genhopie/relateanything-runtime/actions/runs/36832818024) on `2026-10-01` |
+
+Use the digest value for Base Admin `content_visual_inference_runtime_container_revision`. The workflow builds on `main` push; publish to a registry separately if remote `RepoDigests` are required.
