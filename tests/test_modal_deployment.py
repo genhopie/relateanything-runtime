@@ -53,7 +53,16 @@ def test_modal_deploy_workflow_references_secret_not_api_key_value() -> None:
     )
     with open(workflow_path, encoding="utf-8") as handle:
         workflow = handle.read()
+    assert 'pip install -e ".[modal]"' in workflow
+    install_pos = workflow.index('pip install -e ".[modal]"')
+    deploy_pos = workflow.index("modal deploy --env main")
+    assert install_pos < deploy_pos
+    assert "MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}" in workflow
+    assert "MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}" in workflow
+    assert "RELATEANYTHING_REGISTRY_IMAGE: ${{ inputs.registry_image }}" in workflow
     assert "RELATEANYTHING_MODAL_SECRET: relateanything-runtime-api" in workflow
     assert "RELATEANYTHING_MODAL_ENVIRONMENT: main" in workflow
-    assert "modal deploy --env main" in workflow
+    assert (
+        "modal deploy --env main src/relateanything_runtime/modal_app.py" in workflow
+    )
     assert "RELATEANYTHING_RUNTIME_API_KEY:" not in workflow
