@@ -1,0 +1,27 @@
+name: container-build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build production image
+        id: build
+        run: |
+          IMAGE="ghcr.io/genhopie/relateanything-runtime:${{ github.sha }}"
+          docker build -t "${IMAGE}" .
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}" 2>/dev/null || docker buildx imagetools inspect "${IMAGE}" 2>/dev/null || true)
+          if [ -z "${DIGEST}" ]; then
+            DIGEST=$(docker image inspect "${IMAGE}" --format='{{.Id}}')
+          fi
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "## Container digest" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`${DIGEST}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Record this value in deploy/CONTAINER_DIGEST.md for Admin content_visual_inference_runtime_container_revision." >> "$GITHUB_STEP_SUMMARY"

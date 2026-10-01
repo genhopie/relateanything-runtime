@@ -1,3 +1,5 @@
+import json
+
 from relateanything_runtime.config_keys import LOCKED_ARTIFACT_PINS
 
 VALID_SUBMIT_BODY: dict = {
@@ -28,7 +30,15 @@ VALID_SUBMIT_BODY: dict = {
         "content_visual_inference_max_objects_per_frame": "10",
         "content_visual_inference_min_detector_confidence": "0.35",
         "content_visual_inference_min_relation_confidence": "0.4",
-        "content_visual_inference_tracking_config": "{}",
+        "content_visual_inference_tracking_config": json.dumps(
+            {
+                "lost_track_buffer": 30,
+                "track_activation_threshold": 0.7,
+                "minimum_consecutive_frames": 2,
+                "minimum_iou_threshold": 0.1,
+                "high_conf_det_threshold": 0.6,
+            }
+        ),
         "content_visual_inference_temporal_consolidation_window_ms": "500",
         "content_visual_inference_duplicate_suppression_config": "{}",
         "content_visual_inference_job_timeout_seconds": "120",

@@ -16,18 +16,15 @@ COPY pyproject.toml README.md LICENSE NOTICE THIRD_PARTY_NOTICES.md ./
 COPY src ./src
 COPY scripts ./scripts
 
-RUN pip install --no-cache-dir -e ".[dev]"
+RUN pip install --no-cache-dir -e ".[dev,inference]"
 
-ARG RELSGG_UPSTREAM_GIT=e9ea42aed60f766f12ad19d51709129c50110a3b
 RUN git clone https://github.com/maelic/RelateAnything.git "${RELATEANYTHING_UPSTREAM_PATH}" \
-    && cd "${RELATEANYTHING_UPSTREAM_PATH}" \
-    && git fetch --depth 1 origin "${RELSGG_UPSTREAM_GIT}" \
-    && git checkout "${RELSGG_UPSTREAM_GIT}" \
-    && pip install --no-cache-dir -e ".[hub]"
+    && pip install --no-cache-dir -e "${RELATEANYTHING_UPSTREAM_PATH}[hub]" \
+    && git -C "${RELATEANYTHING_UPSTREAM_PATH}" rev-parse HEAD > /opt/relsgg-corresponding-source-git-revision.txt
 
-# Artifact download is performed at image build time in deployment pipelines using
-# scripts/fetch_artifacts.sh with checksum verification (not committed to Base).
-RUN mkdir -p /opt/artifacts/relation /opt/artifacts/detector
+RUN python scripts/fetch_artifacts.py \
+    && python scripts/verify_artifact_pins.py \
+    && python scripts/verify_tracker_wheel.py
 
 EXPOSE 8080
 CMD ["uvicorn", "relateanything_runtime.api:app", "--host", "0.0.0.0", "--port", "8080"]

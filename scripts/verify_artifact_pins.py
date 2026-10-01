@@ -8,9 +8,11 @@ import os
 import sys
 from pathlib import Path
 
+from relateanything_runtime.config_keys import LOCKED_ARTIFACT_PINS
+
 PINS = {
-    "relation/model.pth": "5d281bf0d89f2bbfd72ff5a14f9a40ce12534e790b0402e2ca970539c7bcc294",
-    "detector/model.safetensors": "5548f844c928c4b6f411fa8cbcc2bfa8dbbba437cb1d513975519f93c2a9ed21",
+    "relation/model.pth": LOCKED_ARTIFACT_PINS["relation_model_weight_sha256"],
+    "detector/model.safetensors": LOCKED_ARTIFACT_PINS["detector_weight_sha256"],
 }
 
 
