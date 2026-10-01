@@ -1,23 +1,15 @@
 # Container image digest (production gate)
 
-Build the immutable production image from repository `main` and record the **exact** digest below for Base Admin `content_visual_inference_runtime_container_revision`.
+The immutable **GitHub Container Registry** digest for the image built from `main` is the only authority for Base Admin `content_visual_inference_runtime_container_revision`.
 
-## Build (local or CI)
+## CI publish (`container-build` on `main`)
 
-```bash
-docker build -t ghcr.io/genhopie/relateanything-runtime:$(git rev-parse HEAD) .
-docker inspect --format='{{.Id}}' ghcr.io/genhopie/relateanything-runtime:$(git rev-parse HEAD)
-```
+- Image: `ghcr.io/genhopie/relateanything-runtime:<git-sha>`
+- Digest: `sha256:…` from the `docker/build-push-action` push result (workflow job output `digest`)
+- The workflow **fails** if no registry `sha256` digest is available (local `docker image inspect` IDs are not used)
 
-GitHub Actions workflow `container-build` on `main` prints the digest in the job summary after each push. Copy that value here when promoting a release.
+Copy the digest from the successful workflow run summary or job outputs into **Recorded production digest** below when promoting a build.
 
 ## Recorded production digest
 
-| Field | Value |
-| --- | --- |
-| Runtime git revision | `2e42d7d846542c0807577b93dc56d1add451acff` |
-| Image reference (local build tag) | `ghcr.io/genhopie/relateanything-runtime:2e42d7d846542c0807577b93dc56d1add451acff` |
-| Immutable digest (`docker image inspect --format='{{.Id}}'`) | `sha256:e3681a25fa60a93a2a8ac5ba4afdf402f19a7e05e5c06fb8796eda7a0228b554` |
-| Verified build | GitHub Actions `container-build` run [36832818024](https://github.com/genhopie/relateanything-runtime/actions/runs/36832818024) on `2026-10-01` |
-
-Use the digest value for Base Admin `content_visual_inference_runtime_container_revision`. The workflow builds on `main` push; publish to a registry separately if remote `RepoDigests` are required.
+_Updated after the first registry publish on `main` with workflow changes from Prompt CI-ADV-VIDEO-RUNTIME-DEPLOYMENT-01._

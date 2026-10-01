@@ -30,14 +30,18 @@ pytest
 
 Set `RELATEANYTHING_ARTIFACT_ROOT` to a directory containing verified `relation/model.pth` and `detector/model.safetensors` (see `scripts/verify_artifact_pins.py`).
 
-## Container
+## Production container (GitHub Container Registry)
 
-```bash
-docker build -t relateanything-runtime:local .
-docker inspect --format='{{index .RepoDigests 0}}' relateanything-runtime:local
-```
+On every push to `main`, the `container-build` workflow:
 
-Record the digest in Base Admin `content_visual_inference_runtime_container_revision` before activation.
+1. builds the Dockerfile in this repository (including artifact fetch + checksum verification inside the image);
+2. publishes to `ghcr.io/genhopie/relateanything-runtime:<git-sha>`;
+3. fails if no immutable registry `sha256:…` digest is produced;
+4. writes the digest to the workflow summary and job outputs.
+
+The **registry digest** (`sha256:…` from the pushed image) is the only value accepted for Base Admin `content_visual_inference_runtime_container_revision`. Do not use the git SHA, image tag, or a local `docker image inspect` ID.
+
+After a successful workflow run, copy the digest recorded in `deploy/CONTAINER_DIGEST.md` (updated for the promoted build) into Admin/API Management.
 
 ## License
 
