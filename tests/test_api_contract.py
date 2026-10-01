@@ -3,9 +3,14 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from relateanything_runtime.api import app
+from relateanything_runtime.api import app, reset_store_for_tests
 from relateanything_runtime.jobs import JobStatus
 from tests.test_config_fixture import VALID_SUBMIT_BODY
+
+
+@pytest.fixture(autouse=True)
+def _reset_store() -> None:
+    reset_store_for_tests()
 
 
 @pytest.fixture()
@@ -19,7 +24,7 @@ def test_submit_requires_idempotency_key(client: TestClient) -> None:
 
 
 def test_submit_idempotent_replay(client: TestClient) -> None:
-    with patch("relateanything_runtime.api._schedule"):
+    with patch("relateanything_runtime.api._dispatch"):
         first = client.post(
             "/v1/jobs",
             json=VALID_SUBMIT_BODY,
@@ -37,7 +42,7 @@ def test_submit_idempotent_replay(client: TestClient) -> None:
 
 
 def test_cancel_is_idempotent_for_terminal_state(client: TestClient) -> None:
-    with patch("relateanything_runtime.api._schedule"):
+    with patch("relateanything_runtime.api._dispatch"):
         submit = client.post(
             "/v1/jobs",
             json=VALID_SUBMIT_BODY,

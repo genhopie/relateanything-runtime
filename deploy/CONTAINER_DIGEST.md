@@ -12,9 +12,11 @@ The immutable **GitHub Container Registry** digest for the image built from `mai
 
 | Field | Value |
 | --- | --- |
-| Runtime git revision | `960618fddca3c99fe90be03f4d42793a7a8b1dad` |
-| Registry image reference | `ghcr.io/genhopie/relateanything-runtime:960618fddca3c99fe90be03f4d42793a7a8b1dad` |
-| Immutable registry digest | `sha256:37b3edec8612f22113478e47a98a65e4f6c5bd0d31e63cbd8d4d5e16049f0c9a` |
+| Runtime git revision (image build) | `960618fddca3c99fe90be03f4d42793a7a8b1dad` |
+| Immutable registry image | `ghcr.io/genhopie/relateanything-runtime@sha256:37b3edec8612f22113478e47a98a65e4f6c5bd0d31e63cbd8d4d5e16049f0c9a` |
+| Mutable tag (non-authoritative) | `ghcr.io/genhopie/relateanything-runtime:960618fddca3c99fe90be03f4d42793a7a8b1dad` |
 | Verified publish | GitHub Actions `container-build` run [36835049756](https://github.com/genhopie/relateanything-runtime/actions/runs/36835049756) on `2026-10-01` |
+
+Modal production deploy must set `RELATEANYTHING_REGISTRY_IMAGE` to the immutable registry image row above (or a newer verified `@sha256:…` after a subsequent image rebuild).
 
 Set Base Admin `content_visual_inference_runtime_container_revision` to the **immutable registry digest** exactly (`sha256:…`).

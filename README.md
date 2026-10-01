@@ -4,9 +4,13 @@ Public AGPL **Corresponding Source** for the Content Intelligence advanced video
 
 ## HTTP contract
 
+- `POST /control-plane` — Base AI Gateway adapter (`operation=submit|status|cancel`); maps to the same job authority as `/v1/jobs`.
 - `POST /v1/jobs` — requires `Idempotency-Key` (Base CI `processing_job_id`); body matches Base visual submit payload.
 - `GET /v1/jobs/{executionId}` — status, provenance, usage, normalized observations on success.
 - `DELETE /v1/jobs/{executionId}` — idempotent cancel; terminal jobs remain terminal.
+- `GET /healthz` — liveness.
+
+Optional `Authorization: Bearer <API key>` when `RELATEANYTHING_RUNTIME_API_KEY` is set in the deployment environment (matches Base `content_visual_inference_api_key`).
 
 Processing configuration is **fully governed** from the request (`processingConfiguration`); the runtime does not embed operational defaults.
 
@@ -42,6 +46,36 @@ On every push to `main`, the `container-build` workflow:
 The **registry digest** (`sha256:…` from the pushed image) is the only value accepted for Base Admin `content_visual_inference_runtime_container_revision`. Do not use the git SHA, image tag, or a local `docker image inspect` ID.
 
 After a successful workflow run, copy the digest recorded in `deploy/CONTAINER_DIGEST.md` (updated for the promoted build) into Admin/API Management.
+
+## Modal production deployment (scale-to-zero GPU)
+
+Production HTTP is deployed with [Modal](https://modal.com/) using the immutable GHCR image reference:
+
+`ghcr.io/genhopie/relateanything-runtime@sha256:<digest>`
+
+Set `RELATEANYTHING_REGISTRY_IMAGE` to that exact `@sha256:…` reference before deploy. Modal pulls the registry image as the inference identity; do not mount alternate source for production inference behavior.
+
+- App entrypoint: `src/relateanything_runtime/modal_app.py`
+- GPU worker: `run_visual_job_gpu` on `T4`, `scaledown_window=60` (scale to zero when idle)
+- Web ASGI: `serve_fastapi` exposes the existing FastAPI app (including `/control-plane`)
+- Durable metadata: Modal `Dict` (`relateanything-runtime-job-state`) stores execution metadata and idempotency mappings only — **not** signed URLs or raw video
+- Async execution: `FunctionCall.spawn` with cancellation via `FunctionCall.cancel`
+
+Manual deploy (requires repository secrets `MODAL_TOKEN_ID` / `MODAL_TOKEN_SECRET`):
+
+```bash
+pip install "modal>=0.73.0"
+export RELATEANYTHING_REGISTRY_IMAGE="ghcr.io/genhopie/relateanything-runtime@sha256:..."
+modal deploy src/relateanything_runtime/modal_app.py
+```
+
+Or run the `modal-deploy` GitHub Actions workflow with the verified digest input.
+
+Base Admin (manual, not written by this repo):
+
+- `content_visual_inference_endpoint_url` — Modal web endpoint URL for `serve_fastapi`
+- `content_visual_inference_api_key` — bearer token matching `RELATEANYTHING_RUNTIME_API_KEY`
+- `content_visual_inference_runtime_container_revision` — exact GHCR `sha256:…` digest of the deployed inference image
 
 ## License
 

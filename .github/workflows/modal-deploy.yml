@@ -1,0 +1,34 @@
+name: modal-deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      registry_image:
+        description: "Immutable GHCR image reference (must include @sha256:...)"
+        required: true
+        default: "ghcr.io/genhopie/relateanything-runtime@sha256:37b3edec8612f22113478e47a98a65e4f6c5bd0d31e63cbd8d4d5e16049f0c9a"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Modal CLI
+        run: pip install "modal>=0.73.0"
+      - name: Deploy Modal app
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          RELATEANYTHING_REGISTRY_IMAGE: ${{ inputs.registry_image }}
+        run: |
+          if [ -z "${MODAL_TOKEN_ID}" ] || [ -z "${MODAL_TOKEN_SECRET}" ]; then
+            echo "MODAL_TOKEN_ID and MODAL_TOKEN_SECRET repository secrets are required."
+            exit 1
+          fi
+          modal deploy src/relateanything_runtime/modal_app.py

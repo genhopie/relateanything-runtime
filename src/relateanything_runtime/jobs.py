@@ -5,7 +5,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
+from typing import Any, Protocol
 
 from relateanything_runtime.config import GovernedProcessingConfig
 
@@ -42,13 +42,37 @@ class JobRecord:
     updated_at: str = field(default_factory=lambda: _now())
     started_at: str | None = None
     completed_at: str | None = None
+    function_call_id: str | None = None
 
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-class JobStore:
+class JobStore(Protocol):
+    def get_by_idempotency(self, key: str) -> JobRecord | None: ...
+
+    def get_by_execution(self, execution_id: str) -> JobRecord | None: ...
+
+    def create_or_get_idempotent(
+        self,
+        idempotency_key: str,
+        *,
+        case_id: str,
+        stored_file_id: str,
+        mime_type: str,
+        source_signed_url: str,
+        config: GovernedProcessingConfig,
+    ) -> tuple[JobRecord, bool]: ...
+
+    def update(self, record: JobRecord) -> None: ...
+
+    def try_acquire_worker_slot(self, limit: int) -> bool: ...
+
+    def release_worker_slot(self) -> None: ...
+
+
+class InMemoryJobStore:
     def __init__(self) -> None:
         self._lock = threading.RLock()
         self._by_idempotency: dict[str, JobRecord] = {}
@@ -126,4 +150,29 @@ def job_to_response(record: JobRecord) -> dict[str, Any]:
             "code": record.error_code or "processing_failed",
             "message": record.error_message or "Processing failed.",
         }
+    return payload
+
+
+def control_plane_usage(record: JobRecord) -> dict[str, Any]:
+    usage = record.usage if isinstance(record.usage, dict) else {}
+    wall_seconds = usage.get("wall_time_seconds")
+    wall_ms: int | None
+    if isinstance(wall_seconds, (int, float)):
+        wall_ms = int(float(wall_seconds) * 1000)
+    else:
+        wall_ms = None
+    return {
+        "wallTimeMs": wall_ms,
+        "computeUnits": usage.get("computeUnits") if isinstance(usage.get("computeUnits"), (int, float)) else None,
+        "estimatedCostMinor": usage.get("estimatedCostMinor")
+        if isinstance(usage.get("estimatedCostMinor"), (int, float))
+        else None,
+        "currencyCode": usage.get("currencyCode") if isinstance(usage.get("currencyCode"), str) else None,
+    }
+
+
+def job_to_control_plane_response(record: JobRecord) -> dict[str, Any]:
+    payload = job_to_response(record)
+    payload["runtimeJobId"] = record.execution_id
+    payload["usage"] = control_plane_usage(record)
     return payload
