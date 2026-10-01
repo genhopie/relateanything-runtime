@@ -1,0 +1,12 @@
+relateanything-runtime — Content Intelligence visual inference Corresponding Source
+
+Based on RelateAnything by Maëlic Neau — https://github.com/maelic/RelateAnything
+
+Upstream RelateAnything is used under AGPL-3.0 at git revision
+e9ea42aed60f766f12ad19d51709129c50110a3b (see vendor/relsgg-upstream-revision).
+
+Relation weights (maelic/relsgg-vits16plus) are subject to the separate DINOv3 license;
+see THIRD_PARTY_NOTICES.md.
+
+Detector: IDEA-Research/grounding-dino-base (Apache-2.0).
+Tracker: trackers==2.6.1 (Apache-2.0).
