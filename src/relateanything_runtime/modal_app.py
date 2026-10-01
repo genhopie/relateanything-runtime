@@ -9,8 +9,11 @@ import modal
 from relateanything_runtime.modal_state import DEFAULT_REGISTRY_IMAGE
 
 APP_NAME = os.environ.get("RELATEANYTHING_MODAL_APP", "relateanything-runtime")
-MODAL_ENV = os.environ.get("RELATEANYTHING_MODAL_ENVIRONMENT", "main")
+PRODUCTION_MODAL_ENVIRONMENT = "main"
+PRODUCTION_MODAL_SECRET_NAME = "relateanything-runtime-api"
+MODAL_ENV = os.environ.get("RELATEANYTHING_MODAL_ENVIRONMENT", PRODUCTION_MODAL_ENVIRONMENT)
 REGISTRY_IMAGE = os.environ.get("RELATEANYTHING_REGISTRY_IMAGE", DEFAULT_REGISTRY_IMAGE)
+RUNTIME_API_KEY_ENV = "RELATEANYTHING_RUNTIME_API_KEY"
 
 inference_image = modal.Image.from_registry(REGISTRY_IMAGE)
 web_image = inference_image
@@ -18,11 +21,35 @@ web_image = inference_image
 app = modal.App(APP_NAME)
 
 
+def modal_secret_name() -> str:
+    return os.environ.get("RELATEANYTHING_MODAL_SECRET", PRODUCTION_MODAL_SECRET_NAME).strip()
+
+
+def modal_allows_no_secret() -> bool:
+    return os.environ.get("RELATEANYTHING_MODAL_ALLOW_NO_SECRET", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+
 def _modal_secrets() -> list[modal.Secret]:
-    name = os.environ.get("RELATEANYTHING_MODAL_SECRET", "").strip()
-    if not name:
+    if modal_allows_no_secret():
         return []
+    name = modal_secret_name()
+    if not name:
+        raise RuntimeError("RELATEANYTHING_MODAL_SECRET is required for Modal deployment")
     return [modal.Secret.from_name(name)]
+
+
+def assert_modal_runtime_api_key_configured() -> None:
+    """Fail closed when a Modal Secret is required but did not inject the runtime API key."""
+    if modal_allows_no_secret():
+        return
+    if not os.environ.get(RUNTIME_API_KEY_ENV, "").strip():
+        raise RuntimeError(
+            f"Modal secret {modal_secret_name()!r} must provide {RUNTIME_API_KEY_ENV}"
+        )
 
 
 @app.function(
@@ -35,6 +62,7 @@ def _modal_secrets() -> list[modal.Secret]:
 )
 def run_visual_job_gpu(payload: dict) -> dict:
     """Execute one visual job on GPU; updates durable metadata without retaining signed URLs."""
+    assert_modal_runtime_api_key_configured()
     os.environ["RELATEANYTHING_JOB_BACKEND"] = "modal"
     os.environ.setdefault("RELATEANYTHING_DEVICE", "cuda")
     from relateanything_runtime.jobs import JobStatus
@@ -68,6 +96,7 @@ def run_visual_job_gpu(payload: dict) -> dict:
 )
 @modal.asgi_app()
 def serve_fastapi():
+    assert_modal_runtime_api_key_configured()
     os.environ["RELATEANYTHING_JOB_BACKEND"] = "modal"
     from relateanything_runtime.api import app as fastapi_app
 

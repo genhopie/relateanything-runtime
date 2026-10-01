@@ -60,13 +60,17 @@ Set `RELATEANYTHING_REGISTRY_IMAGE` to that exact `@sha256:…` reference before
 - Web ASGI: `serve_fastapi` exposes the existing FastAPI app (including `/control-plane`)
 - Durable metadata: Modal `Dict` (`relateanything-runtime-job-state`) stores execution metadata and idempotency mappings only — **not** signed URLs or raw video
 - Async execution: `FunctionCall.spawn` with cancellation via `FunctionCall.cancel`
+- Modal environment: `main` (`modal deploy --env main`)
+- Modal Secret (production): `relateanything-runtime-api` must define `RELATEANYTHING_RUNTIME_API_KEY` (create in Modal; never commit the value). Functions fail closed at startup if the Secret is missing that key.
 
 Manual deploy (requires repository secrets `MODAL_TOKEN_ID` / `MODAL_TOKEN_SECRET`):
 
 ```bash
 pip install "modal>=0.73.0"
 export RELATEANYTHING_REGISTRY_IMAGE="ghcr.io/genhopie/relateanything-runtime@sha256:..."
-modal deploy src/relateanything_runtime/modal_app.py
+export RELATEANYTHING_MODAL_ENVIRONMENT=main
+export RELATEANYTHING_MODAL_SECRET=relateanything-runtime-api
+modal deploy --env main src/relateanything_runtime/modal_app.py
 ```
 
 Or run the `modal-deploy` GitHub Actions workflow with the verified digest input.

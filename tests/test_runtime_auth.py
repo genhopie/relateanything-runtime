@@ -14,8 +14,14 @@ def _reset_store() -> None:
 def test_bearer_required_when_api_key_configured(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("RELATEANYTHING_RUNTIME_API_KEY", "secret-token")
     client = TestClient(app)
-    response = client.post("/control-plane", json={"operation": "status", "runtimeJobId": "missing"})
-    assert response.status_code == 401
+    missing = client.post("/control-plane", json={"operation": "status", "runtimeJobId": "missing"})
+    assert missing.status_code == 401
+    wrong = client.post(
+        "/control-plane",
+        json={"operation": "status", "runtimeJobId": "missing"},
+        headers={"Authorization": "Bearer wrong-token"},
+    )
+    assert wrong.status_code == 401
     authed = client.post(
         "/control-plane",
         json={"operation": "status", "runtimeJobId": "missing"},

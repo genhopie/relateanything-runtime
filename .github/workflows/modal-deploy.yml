@@ -26,9 +26,11 @@ jobs:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           RELATEANYTHING_REGISTRY_IMAGE: ${{ inputs.registry_image }}
+          RELATEANYTHING_MODAL_ENVIRONMENT: main
+          RELATEANYTHING_MODAL_SECRET: relateanything-runtime-api
         run: |
           if [ -z "${MODAL_TOKEN_ID}" ] || [ -z "${MODAL_TOKEN_SECRET}" ]; then
             echo "MODAL_TOKEN_ID and MODAL_TOKEN_SECRET repository secrets are required."
             exit 1
           fi
-          modal deploy src/relateanything_runtime/modal_app.py
+          modal deploy --env main src/relateanything_runtime/modal_app.py
