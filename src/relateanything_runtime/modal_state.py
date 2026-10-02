@@ -10,7 +10,7 @@ from relateanything_runtime.jobs import InMemoryJobStore, JobRecord, JobStatus, 
 
 DEFAULT_REGISTRY_IMAGE = (
     "ghcr.io/genhopie/relateanything-runtime"
-    "@sha256:37b3edec8612f22113478e47a98a65e4f6c5bd0d31e63cbd8d4d5e16049f0c9a"
+    "@sha256:ee0aac50480a1815a56405c4b9f03a21f51004b3d06cdd011b90bc98fd335b84"
 )
 
 

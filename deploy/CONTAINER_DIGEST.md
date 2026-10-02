@@ -12,10 +12,10 @@ The immutable **GitHub Container Registry** digest for the image built from `mai
 
 | Field | Value |
 | --- | --- |
-| Runtime git revision (image build) | `960618fddca3c99fe90be03f4d42793a7a8b1dad` |
-| Immutable registry image | `ghcr.io/genhopie/relateanything-runtime@sha256:37b3edec8612f22113478e47a98a65e4f6c5bd0d31e63cbd8d4d5e16049f0c9a` |
-| Mutable tag (non-authoritative) | `ghcr.io/genhopie/relateanything-runtime:960618fddca3c99fe90be03f4d42793a7a8b1dad` |
-| Verified publish | GitHub Actions `container-build` run [36835049756](https://github.com/genhopie/relateanything-runtime/actions/runs/36835049756) on `2026-10-01` |
+| Runtime git revision (image build) | `e68c8190985872fc1a3b79df261ba0f4c238e075` |
+| Immutable registry image | `ghcr.io/genhopie/relateanything-runtime@sha256:ee0aac50480a1815a56405c4b9f03a21f51004b3d06cdd011b90bc98fd335b84` |
+| Mutable tag (non-authoritative) | `ghcr.io/genhopie/relateanything-runtime:e68c8190985872fc1a3b79df261ba0f4c238e075` |
+| Verified publish | GitHub Actions `container-build` run [36999111391](https://github.com/genhopie/relateanything-runtime/actions/runs/36999111391) on `2026-10-02` |
 
 Modal production deploy must set `RELATEANYTHING_REGISTRY_IMAGE` to the immutable registry image row above (or a newer verified `@sha256:…` after a subsequent image rebuild).
 

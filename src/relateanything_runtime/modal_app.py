@@ -6,13 +6,18 @@ import os
 
 import modal
 
-from relateanything_runtime.modal_state import DEFAULT_REGISTRY_IMAGE
+# Do not import modal_state at module load: Modal mounts this file on the worker
+# before the registry image Python env is guaranteed. Image ref comes from env/CI.
+_DEFAULT_REGISTRY_IMAGE = (
+    "ghcr.io/genhopie/relateanything-runtime"
+    "@sha256:ee0aac50480a1815a56405c4b9f03a21f51004b3d06cdd011b90bc98fd335b84"
+)
 
 APP_NAME = os.environ.get("RELATEANYTHING_MODAL_APP", "relateanything-runtime")
 PRODUCTION_MODAL_ENVIRONMENT = "main"
 PRODUCTION_MODAL_SECRET_NAME = "relateanything-runtime-api"
 MODAL_ENV = os.environ.get("RELATEANYTHING_MODAL_ENVIRONMENT", PRODUCTION_MODAL_ENVIRONMENT)
-REGISTRY_IMAGE = os.environ.get("RELATEANYTHING_REGISTRY_IMAGE", DEFAULT_REGISTRY_IMAGE)
+REGISTRY_IMAGE = os.environ.get("RELATEANYTHING_REGISTRY_IMAGE", _DEFAULT_REGISTRY_IMAGE)
 RUNTIME_API_KEY_ENV = "RELATEANYTHING_RUNTIME_API_KEY"
 
 inference_image = modal.Image.from_registry(REGISTRY_IMAGE)
